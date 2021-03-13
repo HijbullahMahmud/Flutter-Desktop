@@ -9,6 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Desktop',
       theme: ThemeData(
         // This is the theme of your application.
@@ -30,15 +31,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -46,68 +38,407 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  bool isDark = false;
+  int _index = 0;
 
-  void _incrementCounter() {
+  List<Widget> _widgetOptions = <Widget>[
+    HomeScreenContent(),
+    HomeScreenContent(),
+    HomeScreenContent(),
+    HomeScreenContent(),
+  ];
+
+  void _onItemTapped(int index) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _index = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+        child: _widgetOptions.elementAt(_index),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: _onItemTapped,
+        currentIndex: _index,
+        elevation: 10.0,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: "Home",
+              backgroundColor: Colors.blue),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.music_video),
+              label: "Video",
+              backgroundColor: Colors.blue),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.movie),
+              label: "Discover",
+              backgroundColor: Colors.blue),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: "Profile",
+              backgroundColor: Colors.blue),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeScreenContent extends StatefulWidget {
+  @override
+  _HomeScreenContentState createState() => _HomeScreenContentState();
+}
+
+class _HomeScreenContentState extends State<HomeScreenContent> {
+  bool isDark = false;
+  List<String> categories = [
+    "Top Storis",
+    "Latest",
+    "Politics",
+    "Tech",
+    "Sports",
+    "Entertainment",
+    "World",
+    "Religion"
+  ];
+  int selectedCategoryIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    isDark = false;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Center(
+          child: Container(
+            color: Colors.amber,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {},
+          ),
+        ],
+        leading: Builder(builder: (BuildContext context) {
+          return IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {},
+          );
+        }),
+      ),
+      body: _mainContentUI(),
+    );
+  }
+
+  Widget _mainContentUI() {
+    return Padding(
+      padding: const EdgeInsets.all(5.0),
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              height: 50,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: categories.length,
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index) => InkWell(
+                  onTap: () {
+                    setState(() {
+                      this.selectedCategoryIndex = index;
+                    });
+                    print("Category selected at $index");
+                  },
+                  child: HomeScreenCategoryListRow(
+                      name: categories[index],
+                      isSelected: selectedCategoryIndex == index),
+                ),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+          ),
+
+          //slider list
+          SliverToBoxAdapter(
+            child: Container(
+              height: 270,
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: 10,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) => InkWell(
+                        child: SliderListRow(
+                          isDark: isDark,
+                        ),
+                      )),
+            ),
+          ),
+
+          //article list
+          SliverToBoxAdapter(
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: 20,
+              scrollDirection: Axis.vertical,
+              itemBuilder: (context, index) => InkWell(
+                child: ArticleListRow(isDark: isDark),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class HomeScreenCategoryListRow extends StatelessWidget {
+  bool isSelected;
+  String name;
+
+  HomeScreenCategoryListRow(
+      {Key key, @required this.name, @required this.isSelected})
+      : super(key: key);
+  bool isDark = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 100,
+      height: 50,
+      child: Card(
+        color: Colors.blue,
+        elevation: 5,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: RichText(
+                  overflow: TextOverflow.ellipsis,
+                  strutStyle: StrutStyle(fontSize: 12.0),
+                  text: TextSpan(text: this.name),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Visibility(
+              child: Container(
+                height: 3,
+                color: Colors.white,
+              ),
+              visible: this.isSelected,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SliderListRow extends StatelessWidget {
+  bool isDark;
+
+  SliderListRow({Key key, @required this.isDark}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        elevation: 5,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10.0),
+                      topRight: Radius.circular(10.0)),
+                  color: Colors.blue),
+            ),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: RichText(
+                  overflow: TextOverflow.ellipsis,
+                  strutStyle: StrutStyle(fontSize: 20),
+                  maxLines: 2,
+                  text: TextSpan(
+                      text: "The Belarusian president has placed army on as"),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 5.0, left: 5.0, right: 5.0),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 40.0,
+                      width: 40.0,
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle, color: Colors.amber),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Sheena Niru",
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            "15 Feb 2021",
+                          ),
+                        ],
+                      ),
+                    ),
+                    Spacer(),
+                    IconButton(
+                      icon: Icon(
+                        Icons.bookmark_outline_outlined,
+                      ),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.favorite_outline_outlined,
+                      ),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class ArticleListRow extends StatelessWidget {
+  bool isDark;
+
+  ArticleListRow({Key key, @required this.isDark}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Container(
+        height: 140,
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          elevation: 8.0,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                height: 150,
+                width: 140,
+                decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10.0),
+                        bottomLeft: Radius.circular(10.0)),
+                    color: Colors.blue),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: RichText(
+                            overflow: TextOverflow.ellipsis,
+                            strutStyle: StrutStyle(fontSize: 20),
+                            maxLines: 3,
+                            text: TextSpan(
+                                text:
+                                    "Article title Article title Article title Article title Article title Article title Article title Article title ",
+                                style: TextStyle(
+                                    fontSize: 22, color: Colors.black)),
+                          ),
+                        ),
+                      ),
+                      // Text(
+                      //     "Article title Article title Article title Article title Article title Article title Article title Article title ",
+                      //     //overflow: TextOverflow.visible,
+                      //     maxLines: 3,
+                      //     style: TextStyle(
+                      //         fontSize: 20,
+                      //         color: isDark
+                      //             ? ColorRes.textColorDark
+                      //             : ColorRes.textColorLight)),
+                      //
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            '2h',
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10, right: 10),
+                            child: Container(
+                              width: 1.5,
+                              height: 15,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            'Business',
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Icon(
+                            Icons.message_rounded,
+                            size: 18,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 5),
+                            child: Text(
+                              '45',
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
